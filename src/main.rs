@@ -13,19 +13,35 @@ fn main() {
 
     let file = match File::open(args) {
         Ok(path) => path,
-        Err(e) => return eprintln!("{e}"),
+        Err(e) => {
+            eprintln!("{e}");
+            return;
+        }
     };
     let mut buf = BufReader::new(file);
-    let mut buffer: [u8; 16] = [0; 16];
+    let mut buffer: [u8; 8] = [0; 8];
+    println!();
     while let Ok(_) = buf.read_exact(&mut buffer) {
         position += 1;
-        print!("{:0>4}  ", position);
+        print!("\x1b[1;32m{:0>4}\x1b[0m  ", position);
         for byte in &buffer {
             match *byte {
                 0x00 => print!(".     "),
 
                 0xff => print!("##  "),
-                _ => print!("{:#02x} ", byte),
+                _ => print!("{:<02x} ", byte),
+            }
+        }
+        print!("\t|\t");
+        for byte in &buffer {
+            if let Some(c) = char::from_u32(*byte as u32) {
+                if c.is_alphanumeric() {
+                    print!("{} ", c);
+                } else {
+                    print!(". ");
+                }
+            } else {
+                print!(". ");
             }
         }
         println!();
