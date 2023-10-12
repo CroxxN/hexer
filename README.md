@@ -2,12 +2,18 @@
 
 ## How to Use?
 
-```hexer <filename>```
+```zsh 
+> hexer <filename>
+```
 
 ## Currently Supported formatting
 
 - Hex
 
-		(Support is planned for Octal and binary (ironic ik))
+## TODO:
 
-
+- [ ] Dynamically select octet size
+- [ ] Dynamically select column size
+- [ ] Option to Disable formatted character display
+- [ ] Option to Disable color formatting
+- [ ] Optimization

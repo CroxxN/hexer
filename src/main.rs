@@ -11,31 +11,46 @@ fn main() {
     };
     let mut position = 0usize;
 
-    let file = match File::open(args) {
+    let file = match File::open(&args) {
         Ok(path) => path,
         Err(e) => {
             eprintln!("{e}");
             return;
         }
     };
+    let size = if let Ok(m) = file.metadata() {
+        m.len()
+    } else {
+        println!("\x1b[1;31mError: Failed to read file size\x1b[0m");
+        return;
+    };
     let mut buf = BufReader::new(file);
+
     let mut buffer: [u8; 8] = [0; 8];
     println!();
-    while let Ok(_) = buf.read_exact(&mut buffer) {
+    while let Ok(rs) = buf.read(&mut buffer) {
+        // if EOF, return
+        if rs == 0 {
+            break;
+        }
+        print!("\x1b[1;32m{:0>6}\x1b[0m  ", position);
         position += 1;
-        print!("\x1b[1;32m{:0>4}\x1b[0m  ", position);
+
         for byte in &buffer {
             match *byte {
-                0x00 => print!(".     "),
-
-                0xff => print!("##  "),
+                0x00 => print!("\x1b[1;31m00 \x1b[0m"),
                 _ => print!("{:<02x} ", byte),
             }
         }
-        print!("\t|\t");
+        print!("  |  ");
+
         for byte in &buffer {
+            if *byte == 0 {
+                print!(". ");
+                continue;
+            }
             if let Some(c) = char::from_u32(*byte as u32) {
-                if c.is_alphanumeric() {
+                if !c.is_whitespace() {
                     print!("{} ", c);
                 } else {
                     print!(". ");
@@ -46,4 +61,8 @@ fn main() {
         }
         println!();
     }
+    println!(
+        "\n\x1b[1;32m{}\x1b[0m of \x1b[1;31m{}\x1b[0m bytes displayed in \x1b[1;31m{}\x1b[0m lines",
+        args, size, position
+    );
 }
