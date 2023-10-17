@@ -9,12 +9,6 @@ macro_rules! hexer_write{
     };
 }
 
-macro_rules! untyped_vec {
-    ($vec_type:expr; $size:expr) => {
-        vec![$vec_type; $size]
-    };
-}
-
 fn main() {
     let args = match env::args().nth(1) {
         Some(args) => args,
@@ -50,11 +44,12 @@ fn main() {
 
     let mut position = 0usize;
     let mut buf = BufReader::new(file);
+
     // Number of column to display in one line
     let divisions = 16;
     let denominator = 0u8;
-    let mut buffer = vec![0u8; divisions];
-    // let mut buffer = untyped_vec!(denominator; divisions);
+
+    let mut buffer = vec![denominator; divisions];
     println!();
     while let Ok(rs) = buf.read(&mut buffer) {
         // if EOF, return
