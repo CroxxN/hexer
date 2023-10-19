@@ -2,6 +2,8 @@ use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 
+mod cli;
+
 macro_rules! hexer_write{
     ($dst:expr, $($arg:tt)*) => {
         // use std::format_args;
@@ -10,13 +12,15 @@ macro_rules! hexer_write{
 }
 
 fn main() {
-    let args = match env::args().nth(1) {
-        Some(args) => args,
-        _ => {
-            println!("Usage: hexer <filename>");
-            return;
-        }
-    };
+    // let args = match env::args().nth(1) {
+    //     Some(args) => args,
+    //     _ => {
+    //         println!("Usage: hexer <filename>");
+    //         return;
+    //     }
+    // };
+
+    let args = cli::cli();
 
     let file = match File::open(&args) {
         Ok(path) => path,
