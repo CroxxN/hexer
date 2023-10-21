@@ -2,6 +2,9 @@ use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 
+mod colors;
+// use colors::{BGREEN, BRED, END, GREEN, RED};
+use colors::*;
 mod cli;
 
 macro_rules! hexer_write{
@@ -32,7 +35,7 @@ fn main() {
     let size = if let Ok(m) = file.metadata() {
         m.len()
     } else {
-        println!("\x1b[1;31mError: Failed to read file size\x1b[0m");
+        println!("{BRED}Error: Failed to read file size{END}");
         return;
     };
     /* Create a stdout handle so that if piped to a pager, and the
@@ -60,12 +63,12 @@ fn main() {
         if rs == 0 {
             break;
         }
-        hexer_write!(&mut stdout_hdle, "\x1b[1;32m{:0>6}\x1b[0m  ", position);
+        hexer_write!(&mut stdout_hdle, "{GREEN}{:0>6}{END}  ", position);
         position += 1;
 
         for i in 0..rs {
             match buffer[i] {
-                0x00 => hexer_write!(&mut stdout_hdle, "\x1b[1;31m00 \x1b[0m"),
+                0x00 => hexer_write!(&mut stdout_hdle, "{RED}00 {END}"),
                 _ => hexer_write!(&mut stdout_hdle, "{:<02x} ", buffer[i]),
             }
         }
@@ -95,7 +98,7 @@ fn main() {
     }
     hexer_write!(
         &mut stdout_hdle,
-        "\n\x1b[1;32m{}\x1b[0m of \x1b[1;31m{}\x1b[0m bytes displayed in \x1b[1;31m{}\x1b[0m lines\n",
+        "\n{BGREEN}{}{END} of {BGREEN}{}{END} bytes displayed in {BGREEN}{}{END} lines\n",
         args,
         size,
         position
