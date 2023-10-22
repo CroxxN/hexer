@@ -1,106 +1,109 @@
-use std::env;
-use std::fs::File;
-use std::io::{BufReader, Read, Write};
+// TODO: Remove this item
+#![allow(unused_variables, dead_code)]
 
+// TODO: Import BGREEN
+mod bytestyle;
+mod coloropt;
 mod colors;
-// use colors::{BGREEN, BRED, END, GREEN, RED};
-use colors::*;
-mod cli;
+mod common;
+mod hexutil;
+mod linestyle;
 
-macro_rules! hexer_write{
-    ($dst:expr, $($arg:tt)*) => {
-        // use std::format_args;
-        _ = $dst.write_fmt(::std::format_args!($($arg)*))
-    };
+use colors::*;
+use getopts;
+use std::env;
+
+const HELP: &'static str = "Usage:
+ hexer [options] <file>
+
+Print bytes of a file in different formats and colors.
+
+Options:
+-h, --help         Print this help message
+-v, --version      Print current version
+-C, --canonical    Print ascii-equivalent(if available) side-by-side
+
+Arguments: 
+    <file1><file2>...
+
+See hexer(1).";
+
+const VERSION: &'static str = "v0.0.1";
+
+pub struct HexOpts {
+    column: i32,
+    pipe: bool,
+    cannonical: bool,
+    line: Linestyle,
+    colors: bool,
+    stats: bool,
+}
+
+enum Linestyle {
+    Hex,
+    Int,
+}
+
+impl HexOpts {
+    fn new() -> Self {
+        Self {
+            column: 8,
+            pipe: false,
+            cannonical: true,
+            line: Linestyle::Hex,
+            colors: true,
+            stats: true,
+        }
+    }
+    fn set_column(&mut self, column: i32) {
+        self.column = column;
+    }
+    fn set_pipe(&mut self) {
+        self.pipe = true;
+    }
+    fn set_cannonical(&mut self) {
+        self.cannonical = false;
+    }
+    fn set_line(&mut self) {
+        self.line = Linestyle::Int;
+    }
+    fn set_colors(&mut self) {
+        self.colors = false;
+    }
+    fn set_stats(&mut self) {
+        self.stats = false;
+    }
 }
 
 fn main() {
-    // let args = match env::args().nth(1) {
-    //     Some(args) => args,
-    //     _ => {
-    //         println!("Usage: hexer <filename>");
-    //         return;
-    //     }
-    // };
-
-    let args = cli::cli();
-
-    let file = match File::open(&args) {
-        Ok(path) => path,
+    let args: Vec<String> = env::args().collect();
+    let program_name = args[0].clone();
+    let mut opts = getopts::Options::new();
+    opts.optflag("h", "help", "print this help message");
+    opts.optflag("v", "version", "Print hexer version.");
+    opts.optflag("c", "no-canonical", "Disables interpreted ascii printing");
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => m,
         Err(e) => {
-            println!("{e}");
-            return;
+            println!("{BRED}Error{END}: {}", e);
+            println!("{HELP}");
+            std::process::exit(1);
         }
     };
-    let size = if let Ok(m) = file.metadata() {
-        m.len()
-    } else {
-        println!("{BRED}Error: Failed to read file size{END}");
-        return;
-    };
-    /* Create a stdout handle so that if piped to a pager, and the
-    user quits the pager, hexer won't panic, but quitely exit
-    */
-    let mut stdout_hdle = std::io::stdout().lock();
-    // for in-built paging functionality
-    // WIP:
-    let _pager_handle = match env::var("PAGER") {
-        Ok(pg) => pg,
-        Err(_) => "less".to_string(),
-    };
-
-    let mut position = 0usize;
-    let mut buf = BufReader::new(file);
-
-    // Number of column to display in one line
-    let divisions = 16;
-    let denominator = 0u8;
-
-    let mut buffer = vec![denominator; divisions];
-    println!();
-    while let Ok(rs) = buf.read(&mut buffer) {
-        // if EOF, return
-        if rs == 0 {
-            break;
-        }
-        hexer_write!(&mut stdout_hdle, "{GREEN}{:0>6}{END}  ", position);
-        position += 1;
-
-        for i in 0..rs {
-            match buffer[i] {
-                0x00 => hexer_write!(&mut stdout_hdle, "{RED}00 {END}"),
-                _ => hexer_write!(&mut stdout_hdle, "{:<02x} ", buffer[i]),
-            }
-        }
-
-        for _ in 0..(divisions - rs) {
-            // Three little spaces. One for the separator, two for the placeholder.
-            hexer_write!(&mut stdout_hdle, "   ");
-        }
-        hexer_write!(&mut stdout_hdle, "  |  ");
-
-        for i in 0..rs {
-            if buffer[i] == 0 {
-                hexer_write!(&mut stdout_hdle, ". ");
-                continue;
-            }
-            if let Some(c) = char::from_u32(buffer[i] as u32) {
-                if !c.is_whitespace() {
-                    hexer_write!(&mut stdout_hdle, "{} ", c);
-                } else {
-                    hexer_write!(&mut stdout_hdle, ". ");
-                }
-            } else {
-                hexer_write!(&mut stdout_hdle, ". ");
-            }
-        }
-        hexer_write!(&mut stdout_hdle, "\n");
+    if matches.opt_present("h") {
+        println!("{HELP}");
+        std::process::exit(0);
     }
-    hexer_write!(
-        &mut stdout_hdle,
-        "\n{BGREEN}{}{END} of {BGREEN}{}{END} bytes displayed in {BGREEN}{}{END} lines\n",
-        args,
-        size,
-        position
-    );
+    if matches.opt_present("v") {
+        println!("{BGREEN}{VERSION}{END}");
+        std::process::exit(0);
+    }
+    let hexopts = HexOpts::new();
+    let file = if !matches.free.is_empty() {
+        matches.free[0].clone()
+    } else {
+        println!("{BRED}Error{END}: Required argument <file>\n");
+        println!("{HELP}");
+        std::process::exit(1);
+    };
 }
