@@ -10,6 +10,7 @@ mod hexutil;
 mod linestyle;
 
 use colors::*;
+// use hexutil;
 use getopts;
 use std::env;
 
@@ -34,14 +35,9 @@ pub struct HexOpts {
     column: i32,
     pipe: bool,
     cannonical: bool,
-    line: Linestyle,
+    line: linestyle::Linestyle,
     colors: bool,
     stats: bool,
-}
-
-enum Linestyle {
-    Hex,
-    Int,
 }
 
 impl HexOpts {
@@ -50,7 +46,7 @@ impl HexOpts {
             column: 8,
             pipe: false,
             cannonical: true,
-            line: Linestyle::Hex,
+            line: linestyle::Hex,
             colors: true,
             stats: true,
         }
@@ -82,6 +78,13 @@ fn main() {
     opts.optflag("h", "help", "print this help message");
     opts.optflag("v", "version", "Print hexer version.");
     opts.optflag("c", "no-canonical", "Disables interpreted ascii printing");
+    opts.optflag("", "color", "Enable color mode (Default)");
+    opts.optopt(
+        "l",
+        "linestyle",
+        "formatter to use while displaying line",
+        "hexer --linestyle=octal <file>",
+    );
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(e) => {

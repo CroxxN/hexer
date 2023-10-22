@@ -5,7 +5,19 @@ pub struct Hex;
 pub struct Int;
 pub struct Oct;
 
-pub trait Writeline {
+pub enum Linestyle<T: Writeline> {
+    Inner(T),
+}
+
+impl<T: Writeline> Linestyle<T> {
+    pub fn print(&self, stdout: &mut StdoutLock, position: u32) {
+        if let Self::Inner(i) = self {
+            i.write_line(stdout, position);
+        }
+    }
+}
+
+trait Writeline {
     fn write_line(&self, stdout: &mut StdoutLock, position: u32);
 }
 
