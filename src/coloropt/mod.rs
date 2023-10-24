@@ -3,10 +3,10 @@
 use crate::bytestyle::*;
 use crate::colors::*;
 use crate::common::hexer_write;
-use crate::linestyle::*;
+use crate::linestyle::Linestyle;
 use std::io::Write;
 
-struct Stat {
+pub struct Stat {
     args: u32,
     size: u32,
     position: u32,
@@ -19,32 +19,30 @@ pub trait Hexwrite {
     fn write_stats(&mut self, stats: Stat);
 }
 
-pub struct Color<'a, T, U>
+pub struct Color<'a, U>
 where
-    T: Writeline,
     U: Writebyte,
 {
     stdout: std::io::StdoutLock<'a>,
     // linefmt: Box<dyn Writeline>,
-    linefmt: T,
+    linefmt: Linestyle,
     bytefmt: U,
 }
 
-pub struct NColor<'a, T, U> {
+pub struct NColor<'a, U> {
     stdout: std::io::StdoutLock<'a>,
-    linefmt: T,
+    linefmt: Linestyle,
     bytefmt: U,
 }
 
-impl<'a, T, U> Hexwrite for Color<'a, T, U>
+impl<'a, U> Hexwrite for Color<'a, U>
 where
-    T: Writeline,
     U: Writebyte,
 {
     fn write_line(&mut self, position: u32) {
         hexer_write!(self.stdout, "{BGREEN}");
         // write_line(&mut self.stdout, position, self.linefmt);
-        self.linefmt.write_line(&mut self.stdout, position);
+        self.linefmt.print(&mut self.stdout, position);
         hexer_write!(self.stdout, "{END}");
         // hexer_write!(self.stdout, "{BGREEN}{:0>6}{END}", T::get_line());
     }
@@ -65,13 +63,12 @@ where
     }
 }
 
-impl<'a, T, U> Hexwrite for NColor<'a, T, U>
+impl<'a, U> Hexwrite for NColor<'a, U>
 where
-    T: Writeline,
     U: Writebyte,
 {
     fn write_line(&mut self, position: u32) {
-        self.linefmt.write_line(&mut self.stdout, position);
+        self.linefmt.print(&mut self.stdout, position);
     }
     fn write_stdout(&mut self, data: &u8) {
         self.bytefmt.write_bin(&mut self.stdout, *data);

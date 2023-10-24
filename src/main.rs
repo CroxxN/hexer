@@ -41,12 +41,12 @@ pub struct HexOpts {
 }
 
 impl HexOpts {
-    fn new() -> Self {
+    fn new(style: Option<linestyle::Linestyle>) -> Self {
         Self {
             column: 8,
             pipe: false,
             cannonical: true,
-            line: linestyle::Hex,
+            line: style.unwrap_or(linestyle::Linestyle::Hex),
             colors: true,
             stats: true,
         }
@@ -60,14 +60,17 @@ impl HexOpts {
     fn set_cannonical(&mut self) {
         self.cannonical = false;
     }
-    fn set_line(&mut self) {
-        self.line = Linestyle::Int;
+    fn set_line(&mut self, style: linestyle::Linestyle) {
+        self.line = linestyle::Linestyle::Int;
     }
     fn set_colors(&mut self) {
         self.colors = false;
     }
     fn set_stats(&mut self) {
         self.stats = false;
+    }
+    fn get_line(&mut self, stdout: &mut std::io::StdoutLock, position: u32) {
+        self.line.print(stdout, position);
     }
 }
 
@@ -101,7 +104,10 @@ fn main() {
         println!("{BGREEN}{VERSION}{END}");
         std::process::exit(0);
     }
-    let hexopts = HexOpts::new();
+    let mut hexopts = HexOpts::new(None);
+    if let Some(line) = matches.opt_str("l") {
+        hexopts.set_line(line.into());
+    }
     let file = if !matches.free.is_empty() {
         matches.free[0].clone()
     } else {

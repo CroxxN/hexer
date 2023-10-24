@@ -5,36 +5,29 @@ pub struct Hex;
 pub struct Int;
 pub struct Oct;
 
-pub enum Linestyle<T: Writeline> {
-    Inner(T),
+pub enum Linestyle {
+    Hex,
+    Int,
+    Oct,
 }
 
-impl<T: Writeline> Linestyle<T> {
-    pub fn print(&self, stdout: &mut StdoutLock, position: u32) {
-        if let Self::Inner(i) = self {
-            i.write_line(stdout, position);
+impl From<String> for Linestyle {
+    // TODO: Change option to result
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "x" | "hex" => Self::Hex,
+            "o" | "octal" => Self::Oct,
+            _ => Self::Int,
         }
     }
 }
 
-trait Writeline {
-    fn write_line(&self, stdout: &mut StdoutLock, position: u32);
-}
-
-impl Writeline for Hex {
-    fn write_line(&self, stdout: &mut StdoutLock, position: u32) {
-        hexer_write!(stdout, "{:0>6x}", position);
-    }
-}
-
-impl Writeline for Int {
-    fn write_line(&self, stdout: &mut StdoutLock, position: u32) {
-        hexer_write!(stdout, "{:0>6}", position);
-    }
-}
-
-impl Writeline for Oct {
-    fn write_line(&self, stdout: &mut StdoutLock, position: u32) {
-        hexer_write!(stdout, "{:0>6o}", position);
+impl Linestyle {
+    pub fn print(&self, stdout: &mut StdoutLock, position: u32) {
+        match self {
+            Linestyle::Hex => hexer_write!(stdout, "{:0>6x}", position),
+            Linestyle::Int => hexer_write!(stdout, "{:0>6}", position),
+            Linestyle::Oct => hexer_write!(stdout, "{:0>6o}", position),
+        }
     }
 }

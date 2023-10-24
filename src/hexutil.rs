@@ -4,6 +4,7 @@ use std::io::{BufReader, Read, Write};
 
 // use colors::{BGREEN, BRED, END, GREEN, RED};
 use crate::colors::*;
+use crate::common::hexer_write;
 
 // TODO: Clean up
 fn _shadowed() {
