@@ -7,7 +7,7 @@ use crate::colors::*;
 use crate::common::hexer_write;
 
 // TODO: Clean up
-fn _shadowed() {
+pub fn hexdump() {
     // let args = match env::args().nth(1) {
     //     Some(args) => args,
     //     _ => {
