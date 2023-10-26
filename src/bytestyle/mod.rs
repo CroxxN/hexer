@@ -1,13 +1,9 @@
 use crate::common::hexer_write;
 use std::io::{StdoutLock, Write};
 
-pub trait Writebyte {
-    fn write_bin(&self, stdout: &mut StdoutLock, data: u8);
-}
-
-pub struct BHex;
-pub struct BOct;
-pub struct BInt;
+// pub trait Writebyte {
+//     fn write_bin(&self, stdout: &mut StdoutLock, data: u8);
+// }
 
 #[derive(Clone)]
 pub enum Bytestyle {

@@ -1,6 +1,3 @@
-// TODO: Remove this item
-#![allow(unused_variables, dead_code)]
-
 // TODO: Import BGREEN
 mod bytestyle;
 mod coloropt;
@@ -17,7 +14,7 @@ use hexutil::hexdump;
 use std::env;
 
 const HELP: &'static str = "Usage:
- hexer [options] <file>
+[options] <file>
 
 Print bytes of a file in different formats and colors.
 
@@ -37,10 +34,10 @@ See hexer(1).";
 
 const VERSION: &'static str = "v0.0.1";
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub struct HexOpts {
-    column: i32,
-    pipe: bool,
+    _column: i32,
+    _pipe: bool,
     cannonical: bool,
     nstats: bool,
     file: String,
@@ -49,8 +46,8 @@ pub struct HexOpts {
 impl HexOpts {
     fn new() -> Self {
         Self {
-            column: 8,
-            pipe: false,
+            _column: 8,
+            _pipe: false,
             cannonical: true,
             nstats: true,
             file: String::new(),
@@ -83,12 +80,12 @@ fn main() {
         Ok(m) => m,
         Err(e) => {
             println!("\n{BRED}Error{END}: {}", e);
-            println!("{HELP}");
+            println!("{} {HELP}", &program_name);
             std::process::exit(1);
         }
     };
     if matches.opt_present("h") {
-        println!("{HELP}");
+        println!("{} {HELP}", &program_name);
         std::process::exit(0);
     }
     if matches.opt_present("v") {
@@ -99,7 +96,7 @@ fn main() {
         matches.free[0].clone()
     } else {
         println!("\n{BRED}Error{END}: Required argument <file>\n");
-        println!("{HELP}");
+        println!("{} {HELP}", &program_name);
         std::process::exit(1);
     };
 

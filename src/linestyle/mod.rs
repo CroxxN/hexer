@@ -1,11 +1,6 @@
 use crate::common::hexer_write;
 use std::io::{StdoutLock, Write};
 
-pub struct Hex;
-pub struct Int;
-pub struct Oct;
-
-#[derive(Debug, Clone)]
 pub enum Linestyle {
     Hex,
     Int,
