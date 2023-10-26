@@ -9,9 +9,11 @@ mod common;
 mod hexutil;
 mod linestyle;
 
+use coloropt::Hexwrite;
 use colors::*;
 // use hexutil;
 use getopts;
+use hexutil::hexdump;
 use std::env;
 
 const HELP: &'static str = "Usage:
@@ -20,9 +22,13 @@ const HELP: &'static str = "Usage:
 Print bytes of a file in different formats and colors.
 
 Options:
--h, --help         Print this help message
--v, --version      Print current version
--C, --canonical    Print ascii-equivalent(if available) side-by-side
+-h, --help          Print this help message
+-v, --version       Print current version
+-c, --no-canonical  Print ascii-equivalent(if available) side-by-side
+-l, --linestyle     Print line in a specific format(hex, int, oct)
+-b, --bytestyle     Print bytes in a specific format(hex, int, oct)
+-C, --no-color      Don't display colors
+--no-stats          Don't display stats at the end of the dump
 
 Arguments: 
     <file1><file2>...
@@ -31,13 +37,13 @@ See hexer(1).";
 
 const VERSION: &'static str = "v0.0.1";
 
+#[derive(Clone)]
 pub struct HexOpts {
     column: i32,
     pipe: bool,
     cannonical: bool,
-    line: linestyle::Linestyle,
-    colors: bool,
-    stats: bool,
+    nstats: bool,
+    file: String,
 }
 
 impl HexOpts {
@@ -46,31 +52,9 @@ impl HexOpts {
             column: 8,
             pipe: false,
             cannonical: true,
-            line: linestyle::Linestyle::Hex,
-            colors: true,
-            stats: true,
+            nstats: true,
+            file: String::new(),
         }
-    }
-    fn set_column(&mut self, column: i32) {
-        self.column = column;
-    }
-    fn set_pipe(&mut self) {
-        self.pipe = true;
-    }
-    fn set_cannonical(&mut self) {
-        self.cannonical = false;
-    }
-    fn set_line(&mut self, style: linestyle::Linestyle) {
-        self.line = linestyle::Linestyle::Int;
-    }
-    fn set_colors(&mut self) {
-        self.colors = false;
-    }
-    fn set_stats(&mut self) {
-        self.stats = false;
-    }
-    fn get_line(&mut self, stdout: &mut std::io::StdoutLock, position: u32) {
-        self.line.print(stdout, position);
     }
 }
 
@@ -81,17 +65,24 @@ fn main() {
     opts.optflag("h", "help", "print this help message");
     opts.optflag("v", "version", "Print hexer version.");
     opts.optflag("c", "no-canonical", "Disables interpreted ascii printing");
-    opts.optflag("", "color", "Enable color mode (Default)");
+    opts.optflag("S", "no-stats", "Don't show stats");
+    opts.optflag("C", "no-color", "Disable color");
     opts.optopt(
         "l",
         "linestyle",
         "formatter to use while displaying line",
         "hexer --linestyle=octal <file>",
     );
+    opts.optopt(
+        "b",
+        "bytestyle",
+        "formatter to use while displaying bytes",
+        "hexer --bytestyle=hex <file>",
+    );
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(e) => {
-            println!("{BRED}Error{END}: {}", e);
+            println!("\n{BRED}Error{END}: {}", e);
             println!("{HELP}");
             std::process::exit(1);
         }
@@ -104,20 +95,40 @@ fn main() {
         println!("{BGREEN}{VERSION}{END}");
         std::process::exit(0);
     }
-
     let file = if !matches.free.is_empty() {
         matches.free[0].clone()
     } else {
-        println!("{BRED}Error{END}: Required argument <file>\n");
+        println!("\n{BRED}Error{END}: Required argument <file>\n");
         println!("{HELP}");
         std::process::exit(1);
     };
 
-    let mut hexopts = HexOpts::new();
+    let mut linestyle = linestyle::Linestyle::Hex;
+    let mut bytestyle = bytestyle::Bytestyle::BHex;
+    let mut stats = true;
+    let mut nocan = false;
+
     if let Some(line) = matches.opt_str("l") {
-        hexopts.set_line(line.into());
+        linestyle = line.into();
     }
-    if matches.opt_present("stats") {
-        hexopts.stats = true;
+    if let Some(byte) = matches.opt_str("b") {
+        bytestyle = byte.into();
     }
+    if matches.opt_present("no-stats") {
+        stats = false
+    }
+    if matches.opt_present("c") {
+        nocan = true;
+    }
+    let stdout_hndle = std::io::stdout().lock();
+    let mut hexopts = HexOpts::new();
+    hexopts.file = file;
+    hexopts.nstats = stats;
+    hexopts.cannonical = !nocan;
+    let printer = if matches.opt_present("no-color") {
+        coloropt::Colorstyle::NColor(coloropt::NColor::new(stdout_hndle, linestyle, bytestyle))
+    } else {
+        coloropt::Colorstyle::Color(coloropt::Color::new(stdout_hndle, linestyle, bytestyle))
+    };
+    hexdump(hexopts, printer);
 }

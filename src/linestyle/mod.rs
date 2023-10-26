@@ -5,6 +5,7 @@ pub struct Hex;
 pub struct Int;
 pub struct Oct;
 
+#[derive(Debug, Clone)]
 pub enum Linestyle {
     Hex,
     Int,
@@ -23,11 +24,11 @@ impl From<String> for Linestyle {
 }
 
 impl Linestyle {
-    pub fn print(&self, stdout: &mut StdoutLock, position: u32) {
+    pub fn print(&self, stdout: &mut StdoutLock, position: usize) {
         match self {
-            Linestyle::Hex => hexer_write!(stdout, "{:0>6x}", position),
+            Linestyle::Hex => hexer_write!(stdout, "{:#08x}", position),
             Linestyle::Int => hexer_write!(stdout, "{:0>6}", position),
-            Linestyle::Oct => hexer_write!(stdout, "{:0>6o}", position),
+            Linestyle::Oct => hexer_write!(stdout, "{:#08o}", position),
         }
     }
 }

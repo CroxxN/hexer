@@ -3,11 +3,13 @@ use std::fs::File;
 use std::io::{BufReader, Read, Write};
 
 // use colors::{BGREEN, BRED, END, GREEN, RED};
+use crate::coloropt::{Colorstyle, Stat};
 use crate::colors::*;
 use crate::common::hexer_write;
+use crate::HexOpts;
 
 // TODO: Clean up
-pub fn hexdump() {
+pub fn hexdump(opts: HexOpts, mut printer: Colorstyle) {
     // let args = match env::args().nth(1) {
     //     Some(args) => args,
     //     _ => {
@@ -16,12 +18,10 @@ pub fn hexdump() {
     //     }
     // };
 
-    let args = "TODO";
-
-    let file = match File::open(&args) {
+    let file = match File::open(&opts.file) {
         Ok(path) => path,
         Err(e) => {
-            println!("{e}");
+            println!("\n{BRED}Error:{END} {e}");
             return;
         }
     };
@@ -56,44 +56,46 @@ pub fn hexdump() {
         if rs == 0 {
             break;
         }
-        hexer_write!(&mut stdout_hdle, "{GREEN}{:0>6}{END}  ", position);
+        // printer
+        // opts.line.print(&mut stdout_hdle, position);
+        printer.printline(position);
+        print!("   ");
         position += 1;
 
+        // TODO: let the byte implementation handel the spacing.
+        // I.E: send 8-16 bytes each time to the printbyte implementation
         for i in 0..rs {
-            match buffer[i] {
-                0x00 => hexer_write!(&mut stdout_hdle, "{RED}00 {END}"),
-                _ => hexer_write!(&mut stdout_hdle, "{:<02x} ", buffer[i]),
-            }
+            // opts.byte.print(&mut stdout_hdle, &buffer[i]);
+            printer.printbyte(&buffer[i]);
         }
 
-        for _ in 0..(divisions - rs) {
-            // Three little spaces. One for the separator, two for the placeholder.
-            hexer_write!(&mut stdout_hdle, "   ");
-        }
-        hexer_write!(&mut stdout_hdle, "  |  ");
-
-        for i in 0..rs {
-            if buffer[i] == 0 {
-                hexer_write!(&mut stdout_hdle, ". ");
-                continue;
+        if opts.cannonical {
+            for _ in 0..(divisions - rs) {
+                // Three little spaces. One for the separator, two for the placeholder.
+                hexer_write!(&mut stdout_hdle, "   ");
             }
-            if let Some(c) = char::from_u32(buffer[i] as u32) {
-                if !c.is_whitespace() {
-                    hexer_write!(&mut stdout_hdle, "{} ", c);
+            hexer_write!(&mut stdout_hdle, "  |  ");
+
+            for i in 0..rs {
+                if buffer[i] == 0 {
+                    hexer_write!(&mut stdout_hdle, ". ");
+                    continue;
+                }
+                if let Some(c) = char::from_u32(buffer[i] as u32) {
+                    if !c.is_whitespace() {
+                        hexer_write!(&mut stdout_hdle, "{} ", c);
+                    } else {
+                        hexer_write!(&mut stdout_hdle, ". ");
+                    }
                 } else {
                     hexer_write!(&mut stdout_hdle, ". ");
                 }
-            } else {
-                hexer_write!(&mut stdout_hdle, ". ");
             }
         }
         hexer_write!(&mut stdout_hdle, "\n");
     }
-    hexer_write!(
-        &mut stdout_hdle,
-        "\n{BGREEN}{}{END} of {BGREEN}{}{END} bytes displayed in {BGREEN}{}{END} lines\n",
-        args,
-        size,
-        position
-    );
+    if opts.nstats {
+        let stats = Stat::new(opts.file, size, position);
+        printer.printstats(stats);
+    }
 }

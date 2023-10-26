@@ -9,19 +9,32 @@ pub struct BHex;
 pub struct BOct;
 pub struct BInt;
 
-impl Writebyte for BHex {
-    fn write_bin(&self, stdout: &mut StdoutLock, data: u8) {
-        hexer_write!(stdout, "{:<02x}", data);
+#[derive(Clone)]
+pub enum Bytestyle {
+    BHex,
+    BOct,
+    BInt,
+}
+
+impl From<String> for Bytestyle {
+    // TODO: Change option to result
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "x" | "hex" => Self::BHex,
+            "o" | "octal" => Self::BOct,
+            _ => Self::BInt,
+        }
     }
 }
-impl Writebyte for BOct {
-    fn write_bin(&self, stdout: &mut StdoutLock, data: u8) {
-        hexer_write!(stdout, "{:<02o}", data);
-    }
-}
-impl Writebyte for BInt {
-    fn write_bin(&self, stdout: &mut StdoutLock, data: u8) {
-        hexer_write!(stdout, "{:<02}", data);
+
+impl Bytestyle {
+    pub fn print(&self, stdout: &mut StdoutLock, data: &u8) {
+        match self {
+            Self::BHex => hexer_write!(stdout, "{:<02x} ", *data),
+            // 1 byte can translate upto ~3 digits
+            Self::BOct => hexer_write!(stdout, "{:<03o} ", *data),
+            Self::BInt => hexer_write!(stdout, "{:<03} ", *data),
+        }
     }
 }
 
