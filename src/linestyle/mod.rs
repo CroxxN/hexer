@@ -1,29 +1,36 @@
 use crate::common::hexer_write;
 use std::io::{StdoutLock, Write};
 
-pub enum Linestyle {
-    Hex,
-    Int,
-    Oct,
+pub trait Linestyle {
+    fn print(&self, stdout: &mut StdoutLock, position: usize);
 }
 
-impl From<String> for Linestyle {
-    // TODO: Change option to result
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "x" | "hex" => Self::Hex,
-            "o" | "octal" => Self::Oct,
-            _ => Self::Int,
-        }
+pub struct Hex;
+pub struct Int;
+pub struct Oct;
+
+// impl Line<>
+// Trait object. Yay
+pub fn from_str(value: &str) -> Box<dyn Linestyle> {
+    match value {
+        "x" | "hex" => Box::new(Hex),
+        "o" | "octal" => Box::new(Oct),
+        _ => Box::new(Int),
     }
 }
 
-impl Linestyle {
-    pub fn print(&self, stdout: &mut StdoutLock, position: usize) {
-        match self {
-            Linestyle::Hex => hexer_write!(stdout, "{:#08x}", position),
-            Linestyle::Int => hexer_write!(stdout, "{:0>6}", position),
-            Linestyle::Oct => hexer_write!(stdout, "{:#08o}", position),
-        }
+impl Linestyle for Hex {
+    fn print(&self, stdout: &mut StdoutLock, position: usize) {
+        hexer_write!(stdout, "{:#08x}", position);
+    }
+}
+impl Linestyle for Int {
+    fn print(&self, stdout: &mut StdoutLock, position: usize) {
+        hexer_write!(stdout, "{:#06}", position);
+    }
+}
+impl Linestyle for Oct {
+    fn print(&self, stdout: &mut StdoutLock, position: usize) {
+        hexer_write!(stdout, "{:#08o}", position);
     }
 }

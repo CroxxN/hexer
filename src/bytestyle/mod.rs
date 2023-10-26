@@ -1,37 +1,34 @@
 use crate::common::hexer_write;
 use std::io::{StdoutLock, Write};
 
-// pub trait Writebyte {
-//     fn write_bin(&self, stdout: &mut StdoutLock, data: u8);
-// }
-
-#[derive(Clone)]
-pub enum Bytestyle {
-    BHex,
-    BOct,
-    BInt,
+pub trait Bytestyle {
+    fn print(&self, stdout: &mut StdoutLock, data: &u8);
 }
 
-impl From<String> for Bytestyle {
-    // TODO: Change option to result
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "x" | "hex" => Self::BHex,
-            "o" | "octal" => Self::BOct,
-            _ => Self::BInt,
-        }
+pub struct BHex;
+pub struct BOct;
+pub struct BInt;
+
+pub fn from_str(value: &str) -> Box<dyn Bytestyle> {
+    match value {
+        "x" | "hex" => Box::new(BHex),
+        "o" | "octal" => Box::new(BOct),
+        _ => Box::new(BInt),
     }
 }
 
-impl Bytestyle {
-    pub fn print(&self, stdout: &mut StdoutLock, data: &u8) {
-        match self {
-            Self::BHex => hexer_write!(stdout, "{:<02x} ", *data),
-            // 1 byte can translate upto ~3 digits
-            Self::BOct => hexer_write!(stdout, "{:<03o} ", *data),
-            Self::BInt => hexer_write!(stdout, "{:<03} ", *data),
-        }
+impl Bytestyle for BHex {
+    fn print(&self, stdout: &mut StdoutLock, data: &u8) {
+        hexer_write!(stdout, "{:<02x} ", *data);
     }
 }
-
-// TODO: Implement for binary? Just make the binaries 8 bits long because u8
+impl Bytestyle for BInt {
+    fn print(&self, stdout: &mut StdoutLock, data: &u8) {
+        hexer_write!(stdout, "{:<02} ", *data);
+    }
+}
+impl Bytestyle for BOct {
+    fn print(&self, stdout: &mut StdoutLock, data: &u8) {
+        hexer_write!(stdout, "{:<02o} ", *data);
+    }
+}

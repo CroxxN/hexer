@@ -1,4 +1,4 @@
-// TODO: delete this
+// TODO: Use trait objects
 
 use crate::bytestyle::Bytestyle;
 use crate::colors::*;
@@ -24,7 +24,11 @@ impl Stat {
 
 pub trait Hexwrite<'a> {
     // Return error
-    fn new(stdout: std::io::StdoutLock<'a>, linefmt: Linestyle, bytefmt: Bytestyle) -> Self;
+    fn new(
+        stdout: std::io::StdoutLock<'a>,
+        linefmt: Box<dyn Linestyle>,
+        bytefmt: Box<dyn Bytestyle>,
+    ) -> Self;
     fn write_line(&mut self, position: usize);
     fn write_bytes(&mut self, data: &u8);
     fn write_stats(&mut self, stats: Stat);
@@ -59,18 +63,22 @@ impl<'a> Colorstyle<'a> {
 pub struct Color<'a> {
     stdout: std::io::StdoutLock<'a>,
     // linefmt: Box<dyn Writeline>,
-    linefmt: Linestyle,
-    bytefmt: Bytestyle,
+    linefmt: Box<dyn Linestyle>,
+    bytefmt: Box<dyn Bytestyle>,
 }
 
 pub struct NColor<'b> {
     stdout: std::io::StdoutLock<'b>,
-    linefmt: Linestyle,
-    bytefmt: Bytestyle,
+    linefmt: Box<dyn Linestyle>,
+    bytefmt: Box<dyn Bytestyle>,
 }
 
 impl<'a> Hexwrite<'a> for Color<'a> {
-    fn new(stdout: std::io::StdoutLock<'a>, linefmt: Linestyle, bytefmt: Bytestyle) -> Self {
+    fn new(
+        stdout: std::io::StdoutLock<'a>,
+        linefmt: Box<dyn Linestyle>,
+        bytefmt: Box<dyn Bytestyle>,
+    ) -> Self {
         Self {
             stdout,
             linefmt,
@@ -102,7 +110,11 @@ impl<'a> Hexwrite<'a> for Color<'a> {
 }
 
 impl<'b> Hexwrite<'b> for NColor<'b> {
-    fn new(stdout: std::io::StdoutLock<'b>, linefmt: Linestyle, bytefmt: Bytestyle) -> Self {
+    fn new(
+        stdout: std::io::StdoutLock<'b>,
+        linefmt: Box<dyn Linestyle>,
+        bytefmt: Box<dyn Bytestyle>,
+    ) -> Self {
         Self {
             stdout,
             linefmt,

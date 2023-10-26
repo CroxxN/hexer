@@ -100,16 +100,20 @@ fn main() {
         std::process::exit(1);
     };
 
-    let mut linestyle = linestyle::Linestyle::Hex;
-    let mut bytestyle = bytestyle::Bytestyle::BHex;
+    let linestyle;
+    let bytestyle;
     let mut stats = true;
     let mut nocan = false;
 
     if let Some(line) = matches.opt_str("l") {
-        linestyle = line.into();
+        linestyle = linestyle::from_str(&line);
+    } else {
+        linestyle = Box::new(linestyle::Hex)
     }
     if let Some(byte) = matches.opt_str("b") {
-        bytestyle = byte.into();
+        bytestyle = bytestyle::from_str(&byte);
+    } else {
+        bytestyle = Box::new(bytestyle::BHex)
     }
     if matches.opt_present("no-stats") {
         stats = false

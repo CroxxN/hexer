@@ -22,4 +22,4 @@
 - [ X ] Option to select formatting for line number. Eg. Hex, Oct, Integer
 - [ X ] Option to select formatting for bytes. Eg. Hex, Oct, Integer
 - [ ] Optimization
-- [ ] Bytes to picture.
+- [ ] Bytes to picture. See: https://www.youtube.com/watch?v=4bM3Gut1hIk
