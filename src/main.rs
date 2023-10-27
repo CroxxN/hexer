@@ -1,12 +1,11 @@
 // TODO: Import BGREEN
 mod bytestyle;
-mod coloropt;
 mod colors;
 mod common;
 mod hexutil;
 mod linestyle;
+mod printer;
 
-use coloropt::Hexwrite;
 use colors::*;
 // use hexutil;
 use getopts;
@@ -41,6 +40,22 @@ pub struct HexOpts {
     cannonical: bool,
     nstats: bool,
     file: String,
+}
+
+pub struct Stat<'a> {
+    args: &'a str,
+    size: u64,
+    position: usize,
+}
+
+impl<'a> Stat<'a> {
+    pub fn new(args: &'a str, size: u64, position: usize) -> Self {
+        Self {
+            args,
+            size,
+            position,
+        }
+    }
 }
 
 impl HexOpts {
@@ -121,15 +136,21 @@ fn main() {
     if matches.opt_present("c") {
         nocan = true;
     }
-    let stdout_hndle = std::io::stdout().lock();
+    let stdout_hndle = std::io::stdout();
     let mut hexopts = HexOpts::new();
     hexopts.file = file;
     hexopts.nstats = stats;
     hexopts.cannonical = !nocan;
-    let printer = if matches.opt_present("no-color") {
-        coloropt::Colorstyle::NColor(coloropt::NColor::new(stdout_hndle, linestyle, bytestyle))
+    let printer;
+    if matches.opt_present("no-color") {
+        printer = printer::new_ncolor(stdout_hndle.lock(), linestyle, bytestyle);
     } else {
-        coloropt::Colorstyle::Color(coloropt::Color::new(stdout_hndle, linestyle, bytestyle))
-    };
+        printer = printer::new_color(stdout_hndle.lock(), linestyle, bytestyle)
+    }
+    // let printer = if matches.opt_present("no-color") {
+    //     coloropt::Hexwrite:
+    // } else {
+    //     coloropt::Colorstyle::Color(coloropt::Color::new(stdout_hndle, linestyle, bytestyle))
+    // };
     hexdump(hexopts, printer);
 }

@@ -9,7 +9,6 @@ pub struct Hex;
 pub struct Int;
 pub struct Oct;
 
-// impl Line<>
 // Trait object. Yay
 pub fn from_str(value: &str) -> Box<dyn Linestyle> {
     match value {

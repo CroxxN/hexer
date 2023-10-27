@@ -2,22 +2,14 @@ use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 
-// use colors::{BGREEN, BRED, END, GREEN, RED};
-use crate::coloropt::{Colorstyle, Stat};
 use crate::colors::*;
 use crate::common::hexer_write;
+use crate::printer::Hexwrite;
 use crate::HexOpts;
+use crate::Stat;
 
-// TODO: Clean up
-pub fn hexdump(opts: HexOpts, mut printer: Colorstyle) {
-    // let args = match env::args().nth(1) {
-    //     Some(args) => args,
-    //     _ => {
-    //         println!("Usage: hexer <filename>");
-    //         return;
-    //     }
-    // };
-
+// TODO: Clean up + Seperate functions
+pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
     let file = match File::open(&opts.file) {
         Ok(path) => path,
         Err(e) => {
@@ -56,9 +48,7 @@ pub fn hexdump(opts: HexOpts, mut printer: Colorstyle) {
         if rs == 0 {
             break;
         }
-        // printer
-        // opts.line.print(&mut stdout_hdle, position);
-        printer.printline(position);
+        printer.write_line(position);
         print!("   ");
         position += 1;
 
@@ -66,7 +56,7 @@ pub fn hexdump(opts: HexOpts, mut printer: Colorstyle) {
         // I.E: send 8-16 bytes each time to the printbyte implementation
         for i in 0..rs {
             // opts.byte.print(&mut stdout_hdle, &buffer[i]);
-            printer.printbyte(&buffer[i]);
+            printer.write_bytes(&buffer[i]);
         }
 
         if opts.cannonical {
@@ -95,7 +85,7 @@ pub fn hexdump(opts: HexOpts, mut printer: Colorstyle) {
         hexer_write!(&mut stdout_hdle, "\n");
     }
     if opts.nstats {
-        let stats = Stat::new(opts.file, size, position);
-        printer.printstats(stats);
+        let stats = Stat::new(&opts.file, size, position);
+        printer.write_stats(stats);
     }
 }

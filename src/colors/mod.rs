@@ -1,3 +1,4 @@
+// Get the compiler to stop yelling at unused colors
 #![allow(dead_code)]
 
 // reset everything to normal sequence
