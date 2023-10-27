@@ -32,7 +32,7 @@ impl<'a> Hexwrite<'a> for Color<'a> {
     }
     fn write_bytes(&mut self, data: &u8) {
         match *data {
-            0x00 => hexer_write!(&mut self.stdout, "{BRED}00{END}"),
+            0x00 => hexer_write!(&mut self.stdout, "{BRED}00{END} "),
             _ => self.bytefmt.print(&mut self.stdout, data),
         }
     }

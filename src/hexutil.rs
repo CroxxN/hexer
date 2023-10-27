@@ -49,7 +49,7 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
             break;
         }
         printer.write_line(position);
-        print!("   ");
+        hexer_write!(&mut stdout_hdle, "   ");
         position += 1;
 
         // TODO: let the byte implementation handel the spacing.
@@ -88,4 +88,20 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
         let stats = Stat::new(&opts.file, size, position);
         printer.write_stats(stats);
     }
+    // byte2img(&opts.file);
+}
+
+fn _byte2img(file: &str) {
+    let mut bytes = Vec::new();
+    bytes = std::fs::read(file).unwrap();
+    let mut maximum: i32 = 0;
+    for i in bytes.iter() {
+        maximum = maximum.max((*i as f32).ln() as i32);
+    }
+    let maximum = maximum as u8;
+    for i in bytes.iter_mut() {
+        *i = ((*i as f32).ln() / (maximum as f32)) as u8;
+    }
+    dbg!(maximum);
+    dbg!(bytes);
 }
