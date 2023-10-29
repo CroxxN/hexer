@@ -39,9 +39,9 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
     let mut buf = BufReader::new(file);
 
     // Number of column to display in one line
-    let divisions = 16;
+    // let divisions = 16;
     let denominator = 0u8;
-
+    let divisions = opts.column as usize;
     let mut buffer = vec![denominator; divisions];
     println!();
     while let Ok(rs) = buf.read(&mut buffer) {
@@ -65,15 +65,17 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
                 // Three little spaces. One for the separator, two for the placeholder.
                 hexer_write!(&mut stdout_hdle, "   ");
             }
-            hexer_write!(&mut stdout_hdle, "  |  ");
+            hexer_write!(&mut stdout_hdle, "  {BCYAN}|{END}  ");
 
             for i in 0..rs {
-                if buffer[i] == 0 {
+                if buffer[i] < 32 {
                     hexer_write!(&mut stdout_hdle, ". ");
                     continue;
                 }
                 if let Some(c) = char::from_u32(buffer[i] as u32) {
-                    if !c.is_whitespace() {
+                    if !c.is_whitespace()
+                    /*&& c.is_ascii()*/
+                    {
                         hexer_write!(&mut stdout_hdle, "{} ", c);
                     } else {
                         hexer_write!(&mut stdout_hdle, ". ");

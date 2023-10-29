@@ -24,6 +24,7 @@ Options:
 -l, --linestyle     Print line in a specific format(hex, int, oct)
 -b, --bytestyle     Print bytes in a specific format(hex, int, oct)
 -C, --no-color      Don't display colors
+-s, --column-size   Number of bytes displayed in one row
 --no-stats          Don't display stats at the end of the dump
 --byte2img          Interpret the bytes in image
 
@@ -36,7 +37,7 @@ const VERSION: &'static str = "v0.0.1";
 
 // #[derive(Clone)]
 pub struct HexOpts {
-    _column: i32,
+    column: u16,
     _pipe: bool,
     cannonical: bool,
     nstats: bool,
@@ -63,7 +64,7 @@ impl<'a> Stat<'a> {
 impl HexOpts {
     fn new() -> Self {
         Self {
-            _column: 8,
+            column: 8,
             _pipe: false,
             cannonical: true,
             nstats: true,
@@ -93,6 +94,12 @@ fn main() {
         "bytestyle",
         "formatter to use while displaying bytes",
         "hexer --bytestyle=hex <file>",
+    );
+    opts.optopt(
+        "s",
+        "column-size",
+        "Number of bytes displayed in one row",
+        "hexer --column-size 16 <file>",
     );
     opts.optflag(
         "",
@@ -127,6 +134,9 @@ fn main() {
     let bytestyle;
     let mut stats = true;
 
+    let stdout_hndle = std::io::stdout();
+    let mut hexopts = HexOpts::new();
+
     if let Some(line) = matches.opt_str("l") {
         linestyle = linestyle::from_str(&line);
     } else {
@@ -137,11 +147,17 @@ fn main() {
     } else {
         bytestyle = Box::new(bytestyle::BHex)
     }
+    if let Some(col) = matches.opt_str("s") {
+        hexopts.column = if let Ok(d) = col.parse::<u16>() {
+            d
+        } else {
+            println!("{BYELLOW}Warn: Invalid Column size: Using default = 8{END}");
+            8
+        }
+    }
     if matches.opt_present("no-stats") {
         stats = false
     }
-    let stdout_hndle = std::io::stdout();
-    let mut hexopts = HexOpts::new();
     hexopts.file = file;
     hexopts.nstats = stats;
     if matches.opt_present("c") {
