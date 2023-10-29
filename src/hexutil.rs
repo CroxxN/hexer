@@ -1,3 +1,4 @@
+use image;
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
@@ -88,20 +89,41 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
         let stats = Stat::new(&opts.file, size, position);
         printer.write_stats(stats);
     }
-    // byte2img(&opts.file);
+    if opts.byte2img {
+        byte2img(&opts.file);
+    }
 }
 
-fn _byte2img(file: &str) {
-    let mut bytes = Vec::new();
-    bytes = std::fs::read(file).unwrap();
-    let mut maximum: i32 = 0;
-    for i in bytes.iter() {
-        maximum = maximum.max((*i as f32).ln() as i32);
+fn byte2img(file: &str) {
+    let mut const_array = [[0usize; 256]; 256];
+    let mut pixls = image::ImageBuffer::new(256, 256);
+    let mut _bytes = Vec::new();
+    _bytes = std::fs::read(file).unwrap();
+    let maxx;
+    for i in 0.._bytes.len() - 1 {
+        let ft = _bytes[i] as usize;
+        let sc = _bytes[i + 1] as usize;
+        const_array[ft][sc] = const_array[ft][sc] + 1;
     }
-    let maximum = maximum as u8;
-    for i in bytes.iter_mut() {
-        *i = ((*i as f32).ln() / (maximum as f32)) as u8;
+    if let Some(m) = const_array.iter().flatten().max() {
+        // x > y => ln(x) > ln(y)
+        if *m < 1 {
+            maxx = 1f32;
+        } else {
+            maxx = (*m as f32).ln();
+        }
+    } else {
+        return;
     }
-    dbg!(maximum);
-    dbg!(bytes);
+    for (i, j, pix) in pixls.enumerate_pixels_mut() {
+        let res = (const_array[i as usize][j as usize] as f32).ln() / maxx;
+        let res = (res * 255.) as u32;
+        // let constucted = 0xFF000000 | res | res << 8 | res << 16;
+        *pix = image::Rgba([0xFF, 0xFF, 0xFF, res as u8]);
+    }
+    if let Ok(_) = pixls.save_with_format("output.png", image::ImageFormat::Png) {
+        println!("\n{BGREEN}Saved image to output.png{END}");
+    } else {
+        println!("\n{BRED}Failed to save image{END}");
+    }
 }

@@ -25,6 +25,7 @@ Options:
 -b, --bytestyle     Print bytes in a specific format(hex, int, oct)
 -C, --no-color      Don't display colors
 --no-stats          Don't display stats at the end of the dump
+--byte2img          Interpret the bytes in image
 
 Arguments: 
     <file1><file2>...
@@ -40,6 +41,7 @@ pub struct HexOpts {
     cannonical: bool,
     nstats: bool,
     file: String,
+    byte2img: bool,
 }
 
 pub struct Stat<'a> {
@@ -66,6 +68,7 @@ impl HexOpts {
             cannonical: true,
             nstats: true,
             file: String::new(),
+            byte2img: false,
         }
     }
 }
@@ -90,6 +93,11 @@ fn main() {
         "bytestyle",
         "formatter to use while displaying bytes",
         "hexer --bytestyle=hex <file>",
+    );
+    opts.optflag(
+        "",
+        "byte2img",
+        "plot the bytes in a 256x256 cartesian plane",
     );
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -118,7 +126,6 @@ fn main() {
     let linestyle;
     let bytestyle;
     let mut stats = true;
-    let mut nocan = false;
 
     if let Some(line) = matches.opt_str("l") {
         linestyle = linestyle::from_str(&line);
@@ -133,14 +140,16 @@ fn main() {
     if matches.opt_present("no-stats") {
         stats = false
     }
-    if matches.opt_present("c") {
-        nocan = true;
-    }
     let stdout_hndle = std::io::stdout();
     let mut hexopts = HexOpts::new();
     hexopts.file = file;
     hexopts.nstats = stats;
-    hexopts.cannonical = !nocan;
+    if matches.opt_present("c") {
+        hexopts.cannonical = false;
+    }
+    if matches.opt_present("byte2img") {
+        hexopts.byte2img = true;
+    }
     let printer;
     if matches.opt_present("no-color") {
         printer = printer::new_ncolor(stdout_hndle.lock(), linestyle, bytestyle);
