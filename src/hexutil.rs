@@ -1,4 +1,7 @@
 use image;
+// image is already using rayon so just adding it here to use par_iter.
+// Not REALLY neccessary, but it's almost free so why not?
+use rayon::prelude::*;
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
@@ -24,6 +27,7 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
         println!("{BRED}Error: Failed to read file size{END}");
         return;
     };
+
     /* Create a stdout handle so that if piped to a pager, and the
     user quits the pager, hexer won't panic, but quitely exit
     */
@@ -92,22 +96,32 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
         printer.write_stats(stats);
     }
     if opts.byte2img {
-        byte2img(&opts.file);
+        byte2img(&opts.file, &opts.imgpath);
     }
 }
 
-fn byte2img(file: &str) {
+fn byte2img(file: &str, img_save_path: &str) {
     let mut const_array = [[0usize; 256]; 256];
     let mut pixls = image::ImageBuffer::new(256, 256);
+
+    // have to use a underscore to supress the `never read` warning
     let mut _bytes = Vec::new();
-    _bytes = std::fs::read(file).unwrap();
+
+    _bytes = match std::fs::read(file) {
+        Ok(f) => f,
+        Err(e) => {
+            println!("{BRED}Error: Failed to open file:{END} {}", e);
+            return;
+        }
+    };
+
     let maxx;
     for i in 0.._bytes.len() - 1 {
         let ft = _bytes[i] as usize;
         let sc = _bytes[i + 1] as usize;
         const_array[ft][sc] = const_array[ft][sc] + 1;
     }
-    if let Some(m) = const_array.iter().flatten().max() {
+    if let Some(m) = const_array.par_iter().flatten().max() {
         // x > y => ln(x) > ln(y)
         if *m < 1 {
             maxx = 1f32;
@@ -119,13 +133,12 @@ fn byte2img(file: &str) {
     }
     for (i, j, pix) in pixls.enumerate_pixels_mut() {
         let res = (const_array[i as usize][j as usize] as f32).ln() / maxx;
-        let res = (res * 255.) as u32;
-        // let constucted = 0xFF000000 | res | res << 8 | res << 16;
-        *pix = image::Rgba([0xFF, 0xFF, 0xFF, res as u8]);
+        let res = (res * 255.) as u8;
+        *pix = image::Rgba([0xFF, 0xFF, 0xFF, res]);
     }
-    if let Ok(_) = pixls.save_with_format("output.png", image::ImageFormat::Png) {
-        println!("\n{BGREEN}Saved image to output.png{END}");
+    if let Err(e) = pixls.save_with_format(img_save_path, image::ImageFormat::Png) {
+        println!("\n{BRED}Failed to save image{END}: {}", e);
     } else {
-        println!("\n{BRED}Failed to save image{END}");
+        println!("\n{BGREEN}Saved image to {}{END}", img_save_path);
     }
 }

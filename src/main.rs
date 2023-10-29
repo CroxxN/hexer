@@ -12,8 +12,7 @@ use getopts;
 use hexutil::hexdump;
 use std::env;
 
-const HELP: &'static str = "Usage:
-[options] <file>
+const HELP: &'static str = "Usage: [options] <file>
 
 Print bytes of a file in different formats and colors.
 
@@ -29,7 +28,7 @@ Options:
 --byte2img          Interpret the bytes in image
 
 Arguments: 
-    <file1><file2>...
+    <file1> <file2>...
 
 See hexer(1).";
 
@@ -43,6 +42,7 @@ pub struct HexOpts {
     nstats: bool,
     file: String,
     byte2img: bool,
+    imgpath: String,
 }
 
 pub struct Stat<'a> {
@@ -70,6 +70,8 @@ impl HexOpts {
             nstats: true,
             file: String::new(),
             byte2img: false,
+            // Default imgpath
+            imgpath: "output.png".to_string(),
         }
     }
 }
@@ -78,6 +80,8 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let program_name = args[0].clone();
     let mut opts = getopts::Options::new();
+
+    // CLI options description
     opts.optflag("h", "help", "print this help message");
     opts.optflag("v", "version", "Print hexer version.");
     opts.optflag("c", "no-canonical", "Disables interpreted ascii printing");
@@ -101,11 +105,13 @@ fn main() {
         "Number of bytes displayed in one row",
         "hexer --column-size 16 <file>",
     );
-    opts.optflag(
+    opts.optflagopt(
         "",
         "byte2img",
         "plot the bytes in a 256x256 cartesian plane",
+        "hexer --byte2img=<path_to_image> <file>",
     );
+
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(e) => {
@@ -114,6 +120,7 @@ fn main() {
             std::process::exit(1);
         }
     };
+
     if matches.opt_present("h") {
         println!("{} {HELP}", &program_name);
         std::process::exit(0);
@@ -122,6 +129,7 @@ fn main() {
         println!("{BGREEN}{VERSION}{END}");
         std::process::exit(0);
     }
+
     let file = if !matches.free.is_empty() {
         matches.free[0].clone()
     } else {
@@ -136,17 +144,20 @@ fn main() {
 
     let stdout_hndle = std::io::stdout();
     let mut hexopts = HexOpts::new();
+    hexopts.file = file;
 
     if let Some(line) = matches.opt_str("l") {
         linestyle = linestyle::from_str(&line);
     } else {
         linestyle = Box::new(linestyle::Hex)
     }
+
     if let Some(byte) = matches.opt_str("b") {
         bytestyle = bytestyle::from_str(&byte);
     } else {
         bytestyle = Box::new(bytestyle::BHex)
     }
+
     if let Some(col) = matches.opt_str("s") {
         hexopts.column = if let Ok(d) = col.parse::<u16>() {
             d
@@ -155,27 +166,31 @@ fn main() {
             8
         }
     }
+
     if matches.opt_present("no-stats") {
         stats = false
     }
-    hexopts.file = file;
+
     hexopts.nstats = stats;
+
     if matches.opt_present("c") {
         hexopts.cannonical = false;
     }
+
     if matches.opt_present("byte2img") {
         hexopts.byte2img = true;
     }
+    if let Some(path) = matches.opt_str("byte2img") {
+        hexopts.imgpath = path;
+    }
+
     let printer;
+
     if matches.opt_present("no-color") {
         printer = printer::new_ncolor(stdout_hndle.lock(), linestyle, bytestyle);
     } else {
         printer = printer::new_color(stdout_hndle.lock(), linestyle, bytestyle)
     }
-    // let printer = if matches.opt_present("no-color") {
-    //     coloropt::Hexwrite:
-    // } else {
-    //     coloropt::Colorstyle::Color(coloropt::Color::new(stdout_hndle, linestyle, bytestyle))
-    // };
+
     hexdump(hexopts, printer);
 }
