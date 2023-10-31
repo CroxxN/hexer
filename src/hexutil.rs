@@ -104,7 +104,7 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
     }
 }
 
-fn byte2img(file: &str, img_save_path: &str) {
+pub fn byte2img(file: &str, img_save_path: &str) {
     let mut const_array = [[0usize; 256]; 256];
     let mut pixls = image::ImageBuffer::new(256, 256);
 

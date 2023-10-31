@@ -26,7 +26,8 @@ Options:
 -s, --column-size   Number of bytes displayed in one row
 -g, --gap-size      Insert a gap between every <n> bytes    
 --no-stats          Don't display stats at the end of the dump
---byte2img          Interpret the bytes in image
+--byte2img          Plot the bytes to image
+--byte2img-only     Just plot the bytes to image and nothing more
 
 Arguments: 
     <file1> <file2>...
@@ -120,6 +121,12 @@ fn main() {
         "plot the bytes in a 256x256 cartesian plane",
         "hexer --byte2img=<path_to_image> <file>",
     );
+    opts.optflagopt(
+        "",
+        "byte2img-only",
+        "only plot the bytes in a 256x256 cartesian plane",
+        "hexer --byte2img-only=<path_to_image> <file>",
+    );
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -150,6 +157,15 @@ fn main() {
     let linestyle;
     let bytestyle;
     let mut stats = true;
+
+    if let Some(path) = matches.opt_str("byte2img-only") {
+        hexutil::byte2img(&file, &path);
+        return;
+    }
+    if matches.opt_present("byte2img-only") {
+        hexutil::byte2img(&file, "output.png");
+        return;
+    }
 
     let stdout_hndle = std::io::stdout();
     let mut hexopts = HexOpts::new();
