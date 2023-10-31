@@ -1,9 +1,17 @@
-# A utility to see hexdump, but cleaner
+# A utility to see hexdump, but cleaner and more configurable
 
 ## How to Use?
 
+- Basic usage
+
 ```zsh 
-> hexer <filename>
+> hexer [options] <filename>
+```
+
+- All options
+
+```zsh
+> hexer --help
 ```
 
 ## Currently Supported formatting
@@ -15,11 +23,13 @@
 ## TODO:
 
 - [x] Dynamically select column size
-- [x] Option to Disable formatted character display
+- [x] Option to disable formatted character display
 - [x] Option to disable cannonical mode
-- [X] Option to Disable color formatting
+- [x] Option to disable color formatting
+- [x] Option to disable line number
 - [x] Option to select formatting for line number. Eg. Hex, Oct, Integer
 - [x] Option to select formatting for bytes. Eg. Hex, Oct, Integer
 - [x] Bytes to picture. See: https://www.youtube.com/watch?v=4bM3Gut1hIk
-- [ ] Dynamically select octet size
+- [x] Dynamically select octet size
 - [ ] Optimization
+- [ ] hexer.conf

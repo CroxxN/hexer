@@ -12,7 +12,7 @@ use getopts;
 use hexutil::hexdump;
 use std::env;
 
-const HELP: &'static str = "Usage: [options] <file>
+const HELP: &'static str = "Usage: hexer [options] <file>
 
 Print bytes of a file in different formats and colors.
 
@@ -20,10 +20,11 @@ Options:
 -h, --help          Print this help message
 -v, --version       Print current version
 -c, --no-canonical  Print ascii-equivalent(if available) side-by-side
--l, --linestyle     Print line in a specific format(hex, int, oct)
+-l, --linestyle     Print line in a specific format(hex, int, oct, null)
 -b, --bytestyle     Print bytes in a specific format(hex, int, oct)
 -C, --no-color      Don't display colors
 -s, --column-size   Number of bytes displayed in one row
+-g, --gap-size      Insert a gap between every <n> bytes    
 --no-stats          Don't display stats at the end of the dump
 --byte2img          Interpret the bytes in image
 
@@ -34,9 +35,9 @@ See hexer(1).";
 
 const VERSION: &'static str = "v0.0.1";
 
-// #[derive(Clone)]
 pub struct HexOpts {
     column: u16,
+    gap: u16,
     _pipe: bool,
     cannonical: bool,
     nstats: bool,
@@ -64,7 +65,8 @@ impl<'a> Stat<'a> {
 impl HexOpts {
     fn new() -> Self {
         Self {
-            column: 8,
+            column: 16,
+            gap: 1,
             _pipe: false,
             cannonical: true,
             nstats: true,
@@ -105,6 +107,13 @@ fn main() {
         "Number of bytes displayed in one row",
         "hexer --column-size 16 <file>",
     );
+    opts.optopt(
+        "g",
+        "gap-size",
+        "Insert gap between every <n> bytes",
+        "hexer -g2 [options] <file>",
+    );
+
     opts.optflagopt(
         "",
         "byte2img",
@@ -159,11 +168,19 @@ fn main() {
     }
 
     if let Some(col) = matches.opt_str("s") {
-        hexopts.column = if let Ok(d) = col.parse::<u16>() {
-            d
+        if let Ok(d) = col.parse::<u16>() {
+            hexopts.column = d;
         } else {
-            println!("{BYELLOW}Warn: Invalid Column size: Using default = 8{END}");
-            8
+            println!("\n{BYELLOW}Warn: Invalid Column size: Using default = 16{END}");
+        }
+    }
+    if let Some(g) = matches.opt_str("g") {
+        if let Ok(g) = g.parse::<u16>() {
+            if g > 0 {
+                hexopts.gap = g;
+            }
+        } else {
+            println!("\n{BYELLOW}Warn: Invalid gap size: Using default = 1{END}");
         }
     }
 

@@ -8,7 +8,8 @@ use std::io::Write;
 pub trait Hexwrite<'a> {
     // TODO: Return error
     fn write_line(&mut self, position: usize);
-    fn write_bytes(&mut self, data: &u8);
+    // fn write_bytes(&mut self, data: &u8);
+    fn write_bytes(&mut self, data: &[u8], size: usize, split: usize);
     fn write_stats(&mut self, stats: Stat);
 }
 
@@ -30,10 +31,26 @@ impl<'a> Hexwrite<'a> for Color<'a> {
         self.linefmt.print(&mut self.stdout, position);
         hexer_write!(self.stdout, "{END}");
     }
-    fn write_bytes(&mut self, data: &u8) {
-        match *data {
-            0x00 => hexer_write!(&mut self.stdout, "{BRED}00{END} "),
-            _ => self.bytefmt.print(&mut self.stdout, data),
+    // fn write_bytes(&mut self, data: &u8) {
+    //     match *data {
+    //         0x00 => hexer_write!(&mut self.stdout, "{BRED}00{END} "),
+    //         _ => self.bytefmt.print(&mut self.stdout, data),
+    //     }
+    // }
+    fn write_bytes(&mut self, data: &[u8], size: usize, split: usize) {
+        let mut pos = 0;
+        while pos < size as usize {
+            for _ in 0..split {
+                match data[pos] {
+                    0x00 => hexer_write!(&mut self.stdout, "{BRED}00{END}"),
+                    _ => self.bytefmt.print(&mut self.stdout, &data[pos]),
+                }
+                pos = pos + 1;
+                if !(pos < size) {
+                    break;
+                }
+            }
+            hexer_write!(&mut self.stdout, " ");
         }
     }
     fn write_stats(&mut self, stats: Stat) {
@@ -51,8 +68,18 @@ impl<'b> Hexwrite<'b> for NColor<'b> {
     fn write_line(&mut self, position: usize) {
         self.linefmt.print(&mut self.stdout, position);
     }
-    fn write_bytes(&mut self, data: &u8) {
-        self.bytefmt.print(&mut self.stdout, data);
+    // fn write_bytes(&mut self, data: &[u8], split: usize) {
+    //     self.bytefmt.print(&mut self.stdout, data);
+    // }
+    fn write_bytes(&mut self, data: &[u8], size: usize, split: usize) {
+        let mut pos = 0;
+        while pos < size as usize {
+            for _ in 0..split {
+                self.bytefmt.print(&mut self.stdout, &data[pos]);
+                pos = pos + 1;
+            }
+            hexer_write!(&mut self.stdout, " ");
+        }
     }
     fn write_stats(&mut self, stats: Stat) {
         hexer_write!(

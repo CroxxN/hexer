@@ -44,9 +44,10 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
 
     // Number of column to display in one line
     // let divisions = 16;
-    let denominator = 0u8;
+    let denominator = opts.gap as usize;
     let divisions = opts.column as usize;
-    let mut buffer = vec![denominator; divisions];
+
+    let mut buffer = vec![0u8; divisions];
     println!();
     while let Ok(rs) = buf.read(&mut buffer) {
         // if EOF, return
@@ -54,15 +55,18 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
             break;
         }
         printer.write_line(position);
-        hexer_write!(&mut stdout_hdle, "   ");
         position += 1;
 
         // TODO: let the byte implementation handel the spacing.
         // I.E: send 8-16 bytes each time to the printbyte implementation
-        for i in 0..rs {
-            // opts.byte.print(&mut stdout_hdle, &buffer[i]);
-            printer.write_bytes(&buffer[i]);
-        }
+        // for i in 0..rs {
+        //     // opts.byte.print(&mut stdout_hdle, &buffer[i]);
+        //     printer.write_bytes(&buffer[i]);
+        // }
+        // buffer.iter().for_each(|v| {
+        //     printer.write_bytes(v);
+        // });
+        printer.write_bytes(&buffer, rs, denominator);
 
         if opts.cannonical {
             for _ in 0..(divisions - rs) {

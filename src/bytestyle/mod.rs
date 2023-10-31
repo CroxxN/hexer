@@ -19,16 +19,16 @@ pub fn from_str(value: &str) -> Box<dyn Bytestyle> {
 
 impl Bytestyle for BHex {
     fn print(&self, stdout: &mut StdoutLock, data: &u8) {
-        hexer_write!(stdout, "{:<02x} ", *data);
+        hexer_write!(stdout, "{:<02x}", *data);
     }
 }
 impl Bytestyle for BInt {
     fn print(&self, stdout: &mut StdoutLock, data: &u8) {
-        hexer_write!(stdout, "{:<02} ", *data);
+        hexer_write!(stdout, "{:<02}", *data);
     }
 }
 impl Bytestyle for BOct {
     fn print(&self, stdout: &mut StdoutLock, data: &u8) {
-        hexer_write!(stdout, "{:<02o} ", *data);
+        hexer_write!(stdout, "{:<02o}", *data);
     }
 }
