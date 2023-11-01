@@ -77,19 +77,19 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
 
             for i in 0..rs {
                 if buffer[i] < 32 {
-                    hexer_write!(&mut stdout_hdle, ". ");
+                    hexer_write!(&mut stdout_hdle, ".");
                     continue;
                 }
                 if let Some(c) = char::from_u32(buffer[i] as u32) {
                     if !c.is_whitespace()
                     /*&& c.is_ascii()*/
                     {
-                        hexer_write!(&mut stdout_hdle, "{} ", c);
+                        hexer_write!(&mut stdout_hdle, "{}", c);
                     } else {
-                        hexer_write!(&mut stdout_hdle, ". ");
+                        hexer_write!(&mut stdout_hdle, ".");
                     }
                 } else {
-                    hexer_write!(&mut stdout_hdle, ". ");
+                    hexer_write!(&mut stdout_hdle, ".");
                 }
             }
         }

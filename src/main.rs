@@ -7,7 +7,6 @@ mod linestyle;
 mod printer;
 
 use colors::*;
-// use hexutil;
 use getopts;
 use hexutil::hexdump;
 use std::env;
