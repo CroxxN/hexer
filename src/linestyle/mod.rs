@@ -1,8 +1,8 @@
 use crate::common::hexer_write;
-use std::io::{StdoutLock, Write};
+use std::io::{BufWriter, StdoutLock, Write};
 
 pub trait Linestyle {
-    fn print(&self, stdout: &mut StdoutLock, position: usize);
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, position: usize);
 }
 
 pub struct Hex;
@@ -22,20 +22,20 @@ pub fn from_str(value: &str) -> Box<dyn Linestyle> {
 }
 
 impl Linestyle for Hex {
-    fn print(&self, stdout: &mut StdoutLock, position: usize) {
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, position: usize) {
         hexer_write!(stdout, "{:#08x}   ", position);
     }
 }
 impl Linestyle for Int {
-    fn print(&self, stdout: &mut StdoutLock, position: usize) {
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, position: usize) {
         hexer_write!(stdout, "{:#06}   ", position);
     }
 }
 impl Linestyle for Oct {
-    fn print(&self, stdout: &mut StdoutLock, position: usize) {
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, position: usize) {
         hexer_write!(stdout, "{:#08o}   ", position);
     }
 }
 impl Linestyle for NULL {
-    fn print(&self, _stdout: &mut StdoutLock, _position: usize) {}
+    fn print(&self, _stdout: &mut BufWriter<StdoutLock>, _position: usize) {}
 }

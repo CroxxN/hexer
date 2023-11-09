@@ -3,7 +3,7 @@ use crate::colors::*;
 use crate::common::hexer_write;
 use crate::linestyle::Linestyle;
 use crate::Stat;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 
 pub trait Hexwrite<'a> {
     // TODO: Return error
@@ -14,13 +14,13 @@ pub trait Hexwrite<'a> {
 }
 
 struct Color<'a> {
-    stdout: std::io::StdoutLock<'a>,
+    stdout: BufWriter<std::io::StdoutLock<'a>>,
     linefmt: Box<dyn Linestyle>,
     bytefmt: Box<dyn Bytestyle>,
 }
 
 struct NColor<'b> {
-    stdout: std::io::StdoutLock<'b>,
+    stdout: BufWriter<std::io::StdoutLock<'b>>,
     linefmt: Box<dyn Linestyle>,
     bytefmt: Box<dyn Bytestyle>,
 }
@@ -93,7 +93,7 @@ impl<'b> Hexwrite<'b> for NColor<'b> {
 }
 
 pub fn new_color(
-    stdout: std::io::StdoutLock,
+    stdout: BufWriter<std::io::StdoutLock>,
     linefmt: Box<dyn Linestyle>,
     bytefmt: Box<dyn Bytestyle>,
 ) -> Box<dyn Hexwrite + '_> {
@@ -105,7 +105,7 @@ pub fn new_color(
 }
 
 pub fn new_ncolor(
-    stdout: std::io::StdoutLock,
+    stdout: BufWriter<std::io::StdoutLock>,
     linefmt: Box<dyn Linestyle>,
     bytefmt: Box<dyn Bytestyle>,
 ) -> Box<dyn Hexwrite + '_> {

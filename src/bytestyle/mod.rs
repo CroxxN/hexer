@@ -1,8 +1,8 @@
 use crate::common::hexer_write;
-use std::io::{StdoutLock, Write};
+use std::io::{BufWriter, StdoutLock, Write};
 
 pub trait Bytestyle {
-    fn print(&self, stdout: &mut StdoutLock, data: &u8);
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, data: &u8);
 }
 
 pub struct BHex;
@@ -18,17 +18,17 @@ pub fn from_str(value: &str) -> Box<dyn Bytestyle> {
 }
 
 impl Bytestyle for BHex {
-    fn print(&self, stdout: &mut StdoutLock, data: &u8) {
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, data: &u8) {
         hexer_write!(stdout, "{:<02x}", *data);
     }
 }
 impl Bytestyle for BInt {
-    fn print(&self, stdout: &mut StdoutLock, data: &u8) {
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, data: &u8) {
         hexer_write!(stdout, "{:<02}", *data);
     }
 }
 impl Bytestyle for BOct {
-    fn print(&self, stdout: &mut StdoutLock, data: &u8) {
+    fn print(&self, stdout: &mut BufWriter<StdoutLock>, data: &u8) {
         hexer_write!(stdout, "{:<02o}", *data);
     }
 }

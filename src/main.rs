@@ -9,7 +9,7 @@ mod printer;
 use colors::*;
 use getopts;
 use hexutil::hexdump;
-use std::env;
+use std::{env, io::BufWriter};
 
 const HELP: &'static str = "Usage: hexer [options] <file>
 
@@ -166,7 +166,7 @@ fn main() {
         return;
     }
 
-    let stdout_hndle = std::io::stdout();
+    let stdout_hndle = BufWriter::new(std::io::stdout().lock());
     let mut hexopts = HexOpts::new();
     hexopts.file = file;
 
@@ -219,9 +219,9 @@ fn main() {
     let printer;
 
     if matches.opt_present("no-color") {
-        printer = printer::new_ncolor(stdout_hndle.lock(), linestyle, bytestyle);
+        printer = printer::new_ncolor(stdout_hndle, linestyle, bytestyle);
     } else {
-        printer = printer::new_color(stdout_hndle.lock(), linestyle, bytestyle)
+        printer = printer::new_color(stdout_hndle, linestyle, bytestyle)
     }
 
     hexdump(hexopts, printer);
