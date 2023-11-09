@@ -27,6 +27,7 @@ pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
         println!("{BRED}Error: Failed to read file size{END}");
         return;
     };
+
     /* Create a stdout handle so that if piped to a pager, and the
     user quits the pager, hexer won't panic, but quitely exit
     */
@@ -117,6 +118,7 @@ pub fn byte2img(file: &str, img_save_path: &str) {
             return;
         }
     };
+
     let maxx;
     for i in 0.._bytes.len() - 1 {
         let ft = _bytes[i] as usize;

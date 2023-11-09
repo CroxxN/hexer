@@ -10,7 +10,7 @@ use colors::*;
 // use hexutil;
 use getopts;
 use hexutil::hexdump;
-use std::{env, io::BufWriter};
+use std::env;
 
 const HELP: &'static str = "Usage: hexer [options] <file>
 
@@ -167,7 +167,7 @@ fn main() {
         return;
     }
 
-    let stdout_hndle = BufWriter::new(std::io::stdout().lock());
+    let stdout_hndle = std::io::stdout();
     let mut hexopts = HexOpts::new();
     hexopts.file = file;
 
@@ -220,9 +220,9 @@ fn main() {
     let printer;
 
     if matches.opt_present("no-color") {
-        printer = printer::new_ncolor(stdout_hndle, linestyle, bytestyle);
+        printer = printer::new_ncolor(stdout_hndle.lock(), linestyle, bytestyle);
     } else {
-        printer = printer::new_color(stdout_hndle, linestyle, bytestyle)
+        printer = printer::new_color(stdout_hndle.lock(), linestyle, bytestyle)
     }
 
     hexdump(hexopts, printer);
