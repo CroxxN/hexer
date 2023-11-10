@@ -5,7 +5,7 @@
 - Basic usage
 
 ```zsh 
-> hexer [options] <filename>
+> hexer [options] <file_1> <file_2> <file_n>
 ```
 
 - All options
@@ -31,5 +31,8 @@
 - [x] Option to select formatting for bytes. Eg. Hex, Oct, Integer
 - [x] Bytes to picture. See: https://www.youtube.com/watch?v=4bM3Gut1hIk
 - [x] Dynamically select octet size
+- [x] Multiple files
+- [x] Don't follow symlink
 - [ ] Optimization
-- [ ] hexer.conf
+- [ ] man page
+- [ ] hexer.conf?

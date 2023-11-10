@@ -1,4 +1,3 @@
-// TODO: Import BGREEN
 mod bytestyle;
 mod colors;
 mod common;
@@ -7,10 +6,8 @@ mod linestyle;
 mod printer;
 
 use colors::*;
-// use hexutil;
 use getopts;
-use hexutil::hexdump;
-use std::env;
+use std::{env, fs, io::Write};
 
 const HELP: &'static str = "Usage: hexer [options] <file>
 
@@ -25,6 +22,7 @@ Options:
 -C, --no-color      Don't display colors
 -s, --column-size   Number of bytes displayed in one row
 -g, --gap-size      Insert a gap between every <n> bytes    
+-z, --readlink      Return the actual path pointed by the symlink
 --no-stats          Don't display stats at the end of the dump
 --byte2img          Plot the bytes to image
 --byte2img-only     Just plot the bytes to image and nothing more
@@ -90,6 +88,7 @@ fn main() {
     opts.optflag("c", "no-canonical", "Disables interpreted ascii printing");
     opts.optflag("S", "no-stats", "Don't show stats");
     opts.optflag("C", "no-color", "Disable color");
+    opts.optflag("", "no-symlink", "Don't follow symlink");
     opts.optopt(
         "l",
         "linestyle",
@@ -145,31 +144,11 @@ fn main() {
         println!("{BGREEN}{VERSION}{END}");
         std::process::exit(0);
     }
-
-    let file = if !matches.free.is_empty() {
-        matches.free[0].clone()
-    } else {
-        println!("\n{BRED}Error{END}: Required argument <file>\n");
-        println!("{} {HELP}", &program_name);
-        std::process::exit(1);
-    };
-
     let linestyle;
     let bytestyle;
-    let mut stats = true;
-
-    if let Some(path) = matches.opt_str("byte2img-only") {
-        hexutil::byte2img(&file, &path);
-        return;
-    }
-    if matches.opt_present("byte2img-only") {
-        hexutil::byte2img(&file, "output.png");
-        return;
-    }
 
     let stdout_hndle = std::io::stdout();
     let mut hexopts = HexOpts::new();
-    hexopts.file = file;
 
     if let Some(line) = matches.opt_str("l") {
         linestyle = linestyle::from_str(&line);
@@ -201,23 +180,14 @@ fn main() {
     }
 
     if matches.opt_present("no-stats") {
-        stats = false
+        hexopts.nstats = false;
     }
-
-    hexopts.nstats = stats;
 
     if matches.opt_present("c") {
         hexopts.cannonical = false;
     }
 
-    if matches.opt_present("byte2img") {
-        hexopts.byte2img = true;
-    }
-    if let Some(path) = matches.opt_str("byte2img") {
-        hexopts.imgpath = path;
-    }
-
-    let printer;
+    let mut printer;
 
     if matches.opt_present("no-color") {
         printer = printer::new_ncolor(stdout_hndle.lock(), linestyle, bytestyle);
@@ -225,5 +195,40 @@ fn main() {
         printer = printer::new_color(stdout_hndle.lock(), linestyle, bytestyle)
     }
 
-    hexdump(hexopts, printer);
+    if matches.free.is_empty() {
+        println!("\n{BRED}Error{END}: Required argument <file>\n");
+        println!("{} {HELP}", &program_name);
+        std::process::exit(1);
+    };
+    for i in 0..matches.free.len().clone() {
+        let file = &matches.free[i];
+        if matches.opt_present("no-symlink") {
+            if let Ok(md) = fs::symlink_metadata(file) {
+                if md.is_symlink() {
+                    hexutil::read_symlink(&file, printer);
+                    return;
+                }
+            }
+        }
+        if let Some(path) = matches.opt_str("byte2img-only") {
+            hexutil::byte2img(file, &path);
+            return;
+        }
+        // TODO: Optimize
+        if matches.opt_present("byte2img-only") {
+            hexutil::byte2img(file, &format!("output{i}.png"));
+            continue;
+        }
+        if matches.opt_present("byte2img") {
+            hexopts.byte2img = true;
+            hexopts.imgpath = format!("output{i}.png");
+        }
+        if let Some(path) = matches.opt_str("byte2img") {
+            hexopts.imgpath = path;
+        }
+
+        hexopts.file = file.clone();
+        hexutil::hexdump(&hexopts, printer.as_mut());
+        _ = writeln!(stdout_hndle.lock());
+    }
 }

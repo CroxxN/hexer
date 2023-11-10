@@ -3,8 +3,9 @@ use image;
 // Not REALLY neccessary, but it's almost free so why not?
 use rayon::prelude::*;
 use std::env;
-use std::fs::File;
+use std::fs::{read_link, File};
 use std::io::{BufReader, Read, Write};
+use std::os::unix::prelude::OsStrExt;
 
 use crate::colors::*;
 use crate::common::hexer_write;
@@ -12,8 +13,27 @@ use crate::printer::Hexwrite;
 use crate::HexOpts;
 use crate::Stat;
 
+pub fn read_symlink(path: &str, mut printer: Box<dyn Hexwrite>) {
+    if let Ok(sp) = read_link(path) {
+        println!(); // okay to use println because even if used with pipe, it immediately exists without allowing the pipe to be broken
+        printer.write_line(0);
+        printer.write_bytes(sp.as_os_str().as_bytes(), sp.as_os_str().len(), 1);
+        print!("  {BCYAN}|{END}  ");
+        sp.as_os_str()
+            .as_bytes()
+            .into_iter()
+            .for_each(|b| print!("{}", *b as char));
+        println!();
+        printer.write_stats(Stat {
+            args: &format!("Symlink {path}"),
+            size: path.len() as u64,
+            position: 1,
+        });
+    }
+}
+
 // TODO: Clean up + Seperate functions
-pub fn hexdump(opts: HexOpts, mut printer: Box<dyn Hexwrite>) {
+pub fn hexdump(opts: &HexOpts, printer: &mut dyn Hexwrite) {
     let file = match File::open(&opts.file) {
         Ok(path) => path,
         Err(e) => {
