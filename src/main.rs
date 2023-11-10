@@ -22,10 +22,10 @@ Options:
 -C, --no-color      Don't display colors
 -s, --column-size   Number of bytes displayed in one row
 -g, --gap-size      Insert a gap between every <n> bytes    
--z, --readlink      Return the actual path pointed by the symlink
 --no-stats          Don't display stats at the end of the dump
 --byte2img          Plot the bytes to image
 --byte2img-only     Just plot the bytes to image and nothing more
+--no-symlink        Don't follow symlink
 
 Arguments: 
     <file1> <file2>...
