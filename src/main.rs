@@ -22,6 +22,8 @@ Options:
 -C, --no-color      Don't display colors
 -s, --column-size   Number of bytes displayed in one row
 -g, --gap-size      Insert a gap between every <n> bytes    
+-o, --offset        Seek <n> bytes from the start of the file
+-a, --amount        Amount of bytes to print
 --no-stats          Don't display stats at the end of the dump
 --byte2img          Plot the bytes to image
 --byte2img-only     Just plot the bytes to image and nothing more
@@ -43,6 +45,8 @@ pub struct HexOpts {
     file: String,
     byte2img: bool,
     imgpath: String,
+    amount: usize,
+    offset: usize,
 }
 
 pub struct Stat<'a> {
@@ -71,6 +75,8 @@ impl HexOpts {
             nstats: true,
             file: String::new(),
             byte2img: false,
+            amount: 0,
+            offset: 0,
             // Default imgpath
             imgpath: "output.png".to_string(),
         }
@@ -113,7 +119,12 @@ fn main() {
         "Insert gap between every <n> bytes",
         "hexer -g2 [options] <file>",
     );
-
+    opts.optopt(
+        "o",
+        "offset",
+        "Seek <n> bytes from the start of the file",
+        "hexer -o10 [options] <file>",
+    );
     opts.optflagopt(
         "",
         "byte2img",
@@ -178,6 +189,13 @@ fn main() {
             println!("\n{BYELLOW}Warn: Invalid gap size: Using default = 1{END}");
         }
     }
+    if let Some(o) = matches.opt_str("o") {
+        if let Ok(o) = o.parse::<usize>() {
+            hexopts.offset = o;
+        } else {
+            println!("\n{BYELLOW}Warn: Invalid offset size: Using default = 0{END}");
+        }
+    }
 
     if matches.opt_present("no-stats") {
         hexopts.nstats = false;
@@ -186,7 +204,8 @@ fn main() {
     if matches.opt_present("c") {
         hexopts.cannonical = false;
     }
-
+    // TODO: Change
+    hexopts.amount = 1;
     let mut printer;
 
     if matches.opt_present("no-color") {

@@ -60,7 +60,9 @@ pub fn hexdump(opts: &HexOpts, printer: &mut dyn Hexwrite) {
 
     let mut position = 0usize;
     let mut buf = BufReader::new(file);
-
+    if let Err(e) = buf.seek_relative(opts.offset as i64) {
+        println!("[WARN]: Error occured in seeking file: {e}");
+    }
     // Number of column to display in one line
     // let divisions = 16;
     let denominator = opts.gap as usize;
@@ -76,15 +78,6 @@ pub fn hexdump(opts: &HexOpts, printer: &mut dyn Hexwrite) {
         printer.write_line(position);
         position += 1;
 
-        // TODO: let the byte implementation handel the spacing.
-        // I.E: send 8-16 bytes each time to the printbyte implementation
-        // for i in 0..rs {
-        //     // opts.byte.print(&mut stdout_hdle, &buffer[i]);
-        //     printer.write_bytes(&buffer[i]);
-        // }
-        // buffer.iter().for_each(|v| {
-        //     printer.write_bytes(v);
-        // });
         printer.write_bytes(&buffer, rs, denominator);
 
         if opts.cannonical {
