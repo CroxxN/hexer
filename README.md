@@ -33,6 +33,8 @@
 - [x] Dynamically select octet size
 - [x] Multiple files
 - [x] Don't follow symlink
+- [x] Offset
+- [x] Read atmost <n> bytes (Can be paired with offset)
 - [ ] Optimization
 - [ ] man page
 - [ ] hexer.conf?

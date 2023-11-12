@@ -46,7 +46,6 @@ pub fn hexdump(opts: &HexOpts, printer: &mut dyn Hexwrite) {
         println!("{BRED}Error: Failed to read file size{END}");
         return;
     };
-
     /* Create a stdout handle so that if piped to a pager, and the
     user quits the pager, hexer won't panic, but quitely exit
     */
@@ -59,9 +58,18 @@ pub fn hexdump(opts: &HexOpts, printer: &mut dyn Hexwrite) {
     };
 
     let mut position = 0usize;
-    let mut buf = BufReader::new(file);
-    if let Err(e) = buf.seek_relative(opts.offset as i64) {
+    let mut reader = BufReader::new(file);
+    if let Err(e) = reader.seek_relative(opts.offset as i64) {
         println!("[WARN]: Error occured in seeking file: {e}");
+    }
+    let mut buf;
+    if opts.amount == 0 {
+        buf = reader.take(size);
+    } else {
+        buf = reader.take(opts.amount as u64);
+    }
+    if opts.amount > 0 {
+        buf = buf.take(opts.amount as u64).into_inner();
     }
     // Number of column to display in one line
     // let divisions = 16;

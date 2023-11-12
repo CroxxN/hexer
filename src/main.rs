@@ -34,7 +34,7 @@ Arguments:
 
 See hexer(1).";
 
-const VERSION: &str = "v0.0.1";
+const VERSION: &str = "v0.0.2";
 
 pub struct HexOpts {
     column: u16,
@@ -125,6 +125,12 @@ fn main() {
         "Seek <n> bytes from the start of the file",
         "hexer -o10 [options] <file>",
     );
+    opts.optopt(
+        "a",
+        "amount",
+        "Read atmost <n> amount of bytes",
+        "hexer -a10 [options] <file>",
+    );
     opts.optflagopt(
         "",
         "byte2img",
@@ -196,7 +202,13 @@ fn main() {
             println!("\n{BYELLOW}Warn: Invalid offset size: Using default = 0{END}");
         }
     }
-
+    if let Some(a) = matches.opt_str("a") {
+        if let Ok(a) = a.parse::<usize>() {
+            hexopts.amount = a;
+        } else {
+            println!("\n{BYELLOW}Warn: Invalid amount size: Using default = full {END}");
+        }
+    }
     if matches.opt_present("no-stats") {
         hexopts.nstats = false;
     }
@@ -204,8 +216,6 @@ fn main() {
     if matches.opt_present("c") {
         hexopts.cannonical = false;
     }
-    // TODO: Change
-    hexopts.amount = 1;
     let mut printer;
 
     if matches.opt_present("no-color") {
