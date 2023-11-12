@@ -1,4 +1,3 @@
-use image;
 // image is already using rayon so just adding it here to use par_iter.
 // Not REALLY neccessary, but it's almost free so why not?
 use rayon::prelude::*;
@@ -21,7 +20,7 @@ pub fn read_symlink(path: &str, mut printer: Box<dyn Hexwrite>) {
         print!("  {BCYAN}|{END}  ");
         sp.as_os_str()
             .as_bytes()
-            .into_iter()
+            .iter()
             .for_each(|b| print!("{}", *b as char));
         println!();
         printer.write_stats(Stat {
@@ -95,12 +94,12 @@ pub fn hexdump(opts: &HexOpts, printer: &mut dyn Hexwrite) {
             }
             hexer_write!(&mut stdout_hdle, "  {BCYAN}|{END}  ");
 
-            for i in 0..rs {
-                if buffer[i] < 32 {
+            for buf in buffer.iter().take(rs) {
+                if *buf < 32 {
                     hexer_write!(&mut stdout_hdle, ". ");
                     continue;
                 }
-                if let Some(c) = char::from_u32(buffer[i] as u32) {
+                if let Some(c) = char::from_u32(*buf as u32) {
                     if !c.is_whitespace()
                     /*&& c.is_ascii()*/
                     {
@@ -143,7 +142,7 @@ pub fn byte2img(file: &str, img_save_path: &str) {
     for i in 0.._bytes.len() - 1 {
         let ft = _bytes[i] as usize;
         let sc = _bytes[i + 1] as usize;
-        const_array[ft][sc] = const_array[ft][sc] + 1;
+        const_array[ft][sc] += 1;
     }
     if let Some(m) = const_array.par_iter().flatten().max() {
         // x > y => ln(x) > ln(y)

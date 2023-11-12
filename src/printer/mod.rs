@@ -39,14 +39,14 @@ impl<'a> Hexwrite<'a> for Color<'a> {
     // }
     fn write_bytes(&mut self, data: &[u8], size: usize, split: usize) {
         let mut pos = 0;
-        while pos < size as usize {
+        while pos < size {
             for _ in 0..split {
                 match data[pos] {
                     0x00 => hexer_write!(&mut self.stdout, "{BRED}00{END}"),
                     _ => self.bytefmt.print(&mut self.stdout, &data[pos]),
                 }
-                pos = pos + 1;
-                if !(pos < size) {
+                pos += 1;
+                if pos >= size {
                     break;
                 }
             }
@@ -73,10 +73,10 @@ impl<'b> Hexwrite<'b> for NColor<'b> {
     // }
     fn write_bytes(&mut self, data: &[u8], size: usize, split: usize) {
         let mut pos = 0;
-        while pos < size as usize {
+        while pos < size {
             for _ in 0..split {
                 self.bytefmt.print(&mut self.stdout, &data[pos]);
-                pos = pos + 1;
+                pos += 1;
             }
             hexer_write!(&mut self.stdout, " ");
         }

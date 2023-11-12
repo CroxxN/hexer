@@ -6,10 +6,10 @@ mod linestyle;
 mod printer;
 
 use colors::*;
-use getopts;
+
 use std::{env, fs, io::Write};
 
-const HELP: &'static str = "Usage: hexer [options] <file>
+const HELP: &str = "Usage: hexer [options] <file>
 
 Print bytes of a file in different formats and colors.
 
@@ -32,7 +32,7 @@ Arguments:
 
 See hexer(1).";
 
-const VERSION: &'static str = "v0.0.1";
+const VERSION: &str = "v0.0.1";
 
 pub struct HexOpts {
     column: u16,
@@ -200,12 +200,12 @@ fn main() {
         println!("{} {HELP}", &program_name);
         std::process::exit(1);
     };
-    for i in 0..matches.free.len().clone() {
+    for i in 0..matches.free.len() {
         let file = &matches.free[i];
         if matches.opt_present("no-symlink") {
             if let Ok(md) = fs::symlink_metadata(file) {
                 if md.is_symlink() {
-                    hexutil::read_symlink(&file, printer);
+                    hexutil::read_symlink(file, printer);
                     return;
                 }
             }

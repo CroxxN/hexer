@@ -9,7 +9,7 @@ pub struct Hex;
 pub struct Int;
 pub struct Oct;
 // Don't print line
-pub struct NULL;
+pub struct Null;
 
 // Trait object. Yay
 pub fn from_str(value: &str) -> Box<dyn Linestyle> {
@@ -17,7 +17,7 @@ pub fn from_str(value: &str) -> Box<dyn Linestyle> {
         "x" | "hex" => Box::new(Hex),
         "o" | "octal" => Box::new(Oct),
         "int" => Box::new(Int),
-        _ => Box::new(NULL),
+        _ => Box::new(Null),
     }
 }
 
@@ -36,6 +36,6 @@ impl Linestyle for Oct {
         hexer_write!(stdout, "{:#08o}   ", position);
     }
 }
-impl Linestyle for NULL {
+impl Linestyle for Null {
     fn print(&self, _stdout: &mut StdoutLock, _position: usize) {}
 }
