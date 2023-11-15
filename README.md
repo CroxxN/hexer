@@ -5,7 +5,7 @@
 - Basic usage
 
 ```zsh 
-> hexer [options] <file_1> <file_2> <file_n>
+> hexer [+options] <file_1> <file_2> <file_n>
 ```
 
 - All options
@@ -35,6 +35,7 @@
 - [x] Don't follow symlink
 - [x] Offset
 - [x] Read atmost <n> bytes (Can be paired with offset)
+- [x] Display header (like -a8)
 - [ ] Optimization
 - [ ] man page
 - [ ] hexer.conf?

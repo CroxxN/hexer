@@ -24,6 +24,7 @@ Options:
 -g, --gap-size      Insert a gap between every <n> bytes    
 -o, --offset        Seek <n> bytes from the start of the file
 -a, --amount        Amount of bytes to print
+--header            Lke -a8. Can be used to display the type of a file
 --no-stats          Don't display stats at the end of the dump
 --byte2img          Plot the bytes to image
 --byte2img-only     Just plot the bytes to image and nothing more
@@ -34,7 +35,7 @@ Arguments:
 
 See hexer(1).";
 
-const VERSION: &str = "v0.0.2";
+const VERSION: &str = "v0.0.3";
 
 pub struct HexOpts {
     column: u16,
@@ -95,6 +96,7 @@ fn main() {
     opts.optflag("S", "no-stats", "Don't show stats");
     opts.optflag("C", "no-color", "Disable color");
     opts.optflag("", "no-symlink", "Don't follow symlink");
+    opts.optflag("", "header", "Print the first 8 \"header\" bytes");
     opts.optopt(
         "l",
         "linestyle",
@@ -201,6 +203,9 @@ fn main() {
         } else {
             println!("\n{BYELLOW}Warn: Invalid offset size: Using default = 0{END}");
         }
+    }
+    if matches.opt_present("header") {
+        hexopts.amount = 8;
     }
     if let Some(a) = matches.opt_str("a") {
         if let Ok(a) = a.parse::<usize>() {
